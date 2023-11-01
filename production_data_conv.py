@@ -1,8 +1,9 @@
 import csv
 import os
 
-from peewee import SqliteDatabase, Model, CharField, IntegerField
+from peewee import MySQLDatabase, Model, CharField, IntegerField
 from dotenv import load_dotenv
+from playhouse.db_url import connect
 
 #  .envの読み込み
 load_dotenv()
@@ -13,36 +14,38 @@ class BaseModel(Model):
     class Meta:
         database = db
 
-class TABLE(BaseModel):
-    user_id = CharField()
-    machine_num = IntegerField()
-    admin_id = CharField()
-    parts_num = IntegerField()
-
+class achievements(BaseModel):
+    day = CharField()
+    production_number = CharField()
+    line_id = CharField()
+    product_id = CharField()
+    responsible_id = CharField()
+    worker_id = CharField()
 
 # CSVファイルのパス
-csv_file = 'data.csv'
+csv_file = '20231030.csv'
 
 # データベース接続
 db.connect()
-# 接続NGの場合はメッセージを表示
-if not db.connect():
-    print("DB接続NG")
-    exit()
+
+# テーブルの作成（既に存在している場合はスキップされます）
+db.create_tables([achievements], safe=True)
+
 
 # TABLEテーブル内のすべてのレコードを削除
-TABLE.delete().execute()
+achievements.delete().execute()
 
 # CSVファイルを読み込んでデータベースに挿入
-# テーブル名、カラム名等要修正
 with open(csv_file, 'r') as file:
-    csv_reader = csv.DictReader(file)
+    csv_reader = csv.reader(file)
     for row in csv_reader:
-        TABLE.create(
-            user_id=row['user_id'],
-            machine_num=int(row['machine_num']),
-            admin_id=row['admin_id'],
-            parts_num=int(row['parts_num'])
+        achievements.create(
+            day = row[0],
+            production_number = row[1],
+            line_id = row[2],
+            product_id = row[3],
+            responsible_id = row[4],
+            worker_id = row[5],
         )
 
 # データベース接続を閉じる
